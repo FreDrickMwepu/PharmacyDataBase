@@ -1,1 +1,65 @@
 @page "/pharmacies"
+@using PharmacyDataBase.Model
+@using PharmacyDataBase.Services
+@inject PharmacyServices pharmacyService
+@attribute [StreamRendering]
+
+<h1>Pharmacies</h1>
+
+<form>
+    <div class="row">
+        <div class="col-4">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" @bind="newPharmacy.Name">
+        </div>
+        <div class="col-4">
+            <label class="form-label">Address</label>
+            <input type="text" class="form-control" @bind="newPharmacy.Address">
+        </div>
+        <div class="col-4">
+            <label class="form-label">Phone Number</label>
+            <input type="text" class="form-control" @bind="newPharmacy.PhoneNumber">
+        </div>
+    </div>
+    <button type="button" class="btn btn-primary btn-block col-12 my-2" @onclick="AddPharmacy">Add Pharmacy</button>
+</form>
+
+<div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Address</th>
+            <th scope="col">Phone Number</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var pharmacy in pharmacies)
+        {
+            <tr>
+                <td>@pharmacy.Name</td>
+                <td>@pharmacy.Address</td>
+                <td>@pharmacy.PhoneNumber</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    public List<Pharmacy> pharmacies = new List<Pharmacy>();
+    public Pharmacy newPharmacy = new Pharmacy();
+
+    protected override async Task OnInitializedAsync()
+    {
+        pharmacies = await pharmacyService.GetPharmacies();
+    }
+
+    public async Task AddPharmacy()
+    {
+        await pharmacyService.PostPharmacy(newPharmacy);
+        pharmacies = await pharmacyService.GetPharmacies();
+        newPharmacy = new Pharmacy();
+        StateHasChanged();
+    }
+}

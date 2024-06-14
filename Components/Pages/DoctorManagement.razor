@@ -1,1 +1,104 @@
 @page "/doctors"
+@using PharmacyDataBase.Model
+@using PharmacyDataBase.Services
+@inject DoctorServices doctorService
+@attribute [StreamRendering]
+
+<h1>Doctors</h1>
+
+<EditForm Model="@newDoctor" OnValidSubmit="@AddDoctor" FormName="doctorForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row">
+        <div class="col-4">
+            <label class="form-label">SSN</label>
+            <InputText class="form-control" @bind-Value="newDoctor.SSN" />
+            @* <ValidationMessage For="@(() => newDoctor.SSN)" /> *@
+        </div>
+        <div class="col-4">
+            <label class="form-label">First Name</label>
+            <InputText class="form-control" @bind-Value="newDoctor.FirstName" />
+            <ValidationMessage For="@(() => newDoctor.FirstName)" />
+        </div>
+        <div class="col-4">
+            <label class="form-label">Last Name</label>
+            <InputText class="form-control" @bind-Value="newDoctor.LastName" />
+            <ValidationMessage For="@(() => newDoctor.LastName)" />
+        </div>
+        <div class="col-4">
+            <label class="form-label">Specialty</label>
+            <InputText class="form-control" @bind-Value="newDoctor.Specialty" />
+            @* <ValidationMessage For="@(() => newDoctor.Specialty)" /> *@
+        </div>
+        <div class="col-4">
+            <label class="form-label">Years of Experience</label>
+            <InputNumber class="form-control" @bind-Value="newDoctor.YearsOfExperience" />
+            <ValidationMessage For="@(() => newDoctor.YearsOfExperience)" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block col-12 my-2">Add Doctor</button>
+</EditForm>
+
+<div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">SSN</th>
+            <th scope="col">Name</th>
+            <th scope="col">Specialty</th>
+            <th scope="col">Years of Experience</th>
+            <th scope="col">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var doctor in doctors)
+        {
+            <tr>
+                <td>@doctor.SSN</td>
+                <td>@doctor.Name</td>
+                <td>@doctor.Specialty</td>
+                <td>@doctor.YearsOfExperience</td>
+                <td>
+                    <button class="btn btn-warning">
+                        <i class="bi bi-pencil-square"></i> Edit
+                    </button>
+                    <button class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    public List<Doctor> doctors = new List<Doctor>();
+    public Doctor newDoctor = new Doctor();
+
+    protected override async Task OnInitializedAsync()
+    {
+        doctors = await doctorService.GetDoctors();
+    }
+
+    public async Task AddDoctor()
+    {
+        if (string.IsNullOrEmpty(newDoctor.SSN))
+        {
+            Console.WriteLine("SSN is null or empty.");
+            return;
+        }
+
+        try
+        {
+            await doctorService.PostDoctor(newDoctor);
+            doctors = await doctorService.GetDoctors();
+            newDoctor = new Doctor();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+}

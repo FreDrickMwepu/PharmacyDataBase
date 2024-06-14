@@ -1,1 +1,81 @@
 @page "/patients"
+@using PharmacyDataBase.Model
+@using PharmacyDataBase.Services
+@inject PatientServices patientService
+@attribute [StreamRendering]
+
+<h1>Patients</h1>
+
+<form>
+    <div class="row">
+        <div class="col-6">
+            <label class="form-label">SSN</label>
+            <input type="text" class="form-control" @bind="newPatient.SSN">
+        </div>
+        <div class="col-6">
+            <label class="form-label">First Name</label>
+            <input type="text" class="form-control" @bind="newPatient.FirstName">
+        </div>
+        <div class="col-6">
+            <label class="form-label">Last Name</label>
+            <input type="text" class="form-control" @bind="newPatient.LastName">
+        </div>
+        <div class="col-6">
+            <label class="form-label">Address</label>
+            <input type="text" class="form-control" @bind="newPatient.Address">
+        </div>
+        <div class="col-6">
+            <label class="form-label">Age</label>
+            <input type="number" class="form-control" @bind="newPatient.Age">
+        </div>
+        <div class="col-6">
+            <label class="form-label">Primary Physician SSN</label>
+            <input type="text" class="form-control" @bind="newPatient.PrimaryPhysicianSSN">
+        </div>
+    </div>
+    <button type="button" class="btn btn-primary btn-block col-12 my-2" @onclick="AddPatient">Add Patient</button>
+</form>
+
+<div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">SSN</th>
+            <th scope="col">Name</th>
+            <th scope="col">Address</th>
+            <th scope="col">Age</th>
+            <th scope="col">Primary Physician SSN</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var patient in patients)
+        {
+            <tr>
+                <td>@patient.SSN</td>
+                <td>@patient.Name</td>
+                <td>@patient.Address</td>
+                <td>@patient.Age</td>
+                <td>@patient.PrimaryPhysicianSSN</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    public List<Patient> patients = new List<Patient>();
+    public Patient newPatient = new Patient();
+
+    protected override async Task OnInitializedAsync()
+    {
+        patients = await patientService.GetPatients();
+    }
+
+    public async Task AddPatient()
+    {
+        await patientService.PostPatient(newPatient);
+        patients = await patientService.GetPatients();
+        newPatient = new Patient();
+        StateHasChanged();
+    }
+}

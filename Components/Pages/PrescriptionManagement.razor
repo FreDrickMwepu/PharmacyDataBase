@@ -1,1 +1,81 @@
 @page "/prescriptions"
+@using PharmacyDataBase.Model
+@using PharmacyDataBase.Services
+@inject PrescriptionServices prescriptionService
+@attribute [StreamRendering]
+
+<h1>Prescriptions</h1>
+
+<form>
+    <div class="row">
+        <div class="col-3">
+            <label class="form-label">Patient SSN</label>
+            <input type="text" class="form-control" @bind="newPrescription.PatientSSN">
+        </div>
+        <div class="col-3">
+            <label class="form-label">Doctor SSN</label>
+            <input type="text" class="form-control" @bind="newPrescription.DoctorSSN">
+        </div>
+        <div class="col-3">
+            <label class="form-label">Drug Trade Name</label>
+            <input type="text" class="form-control" @bind="newPrescription.DrugTradeName">
+        </div>
+        <div class="col-3">
+            <label class="form-label">Quantity</label>
+            <input type="number" class="form-control" @bind="newPrescription.Quantity">
+        </div>
+    </div>
+    <button type="button" class="btn btn-primary btn-block col-12 my-2" @onclick="AddPrescription">Add Prescription</button>
+</form>
+
+<div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Prescription ID</th>
+            <th scope="col">Date</th>
+            <th scope="col">Patient SSN</th>
+            <th scope="col">Doctor SSN</th>
+            <th scope="col">Drug Trade Name</th>
+            <th scope="col">Quantity</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var prescription in prescriptions)
+        {
+            <tr>
+                <td>@prescription.PrescriptionID</td>
+                <td>@prescription.Date.ToShortDateString()</td>
+                <td>@prescription.PatientSSN</td>
+                <td>@prescription.DoctorSSN</td>
+                <td>@prescription.DrugTradeName</td>
+                <td>@prescription.Quantity</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    public List<Prescription> prescriptions = new List<Prescription>();
+    public Prescription newPrescription = new Prescription
+    {
+        Date = DateTime.Now
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        prescriptions = await prescriptionService.GetPrescriptions();
+    }
+
+    public async Task AddPrescription()
+    {
+        await prescriptionService.PostPrescription(newPrescription);
+        prescriptions = await prescriptionService.GetPrescriptions();
+        newPrescription = new Prescription
+        {
+            Date = DateTime.Now
+        };
+        StateHasChanged();
+    }
+}

@@ -1,1 +1,135 @@
 @page "/contracts"
+@using PharmacyDataBase.Model
+@using PharmacyDataBase.Services
+@rendermode InteractiveServer
+@inject ContractServices contractService
+@inject CompanyServices companyService 
+@inject PharmacyServices pharmacyService
+@inject DoctorServices doctorService
+@attribute [StreamRendering]
+
+<h1>Contract Management</h1>
+
+<p>This page allows you to add or update contract details.</p>
+
+<h3>Add/Update Contract</h3>
+<EditForm Model="@newContract" OnValidSubmit="@AddOrUpdateContract">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row">
+        <div class="col-3">
+            <label class="form-label" for="contractId">Contract ID</label>
+            <InputNumber id="contractId" class="form-control" @bind-Value="newContract.ContractID" />
+        </div>
+        <div class="col-3">
+            <label class="form-label" for="startDate">Start Date</label>
+            <InputDate id="startDate" class="form-control" @bind-Value="newContract.StartDate" />
+        </div>
+        <div class="col-3">
+            <label class="form-label" for="endDate">End Date</label>
+            <InputDate id="endDate" class="form-control" @bind-Value="newContract.EndDate" />
+        </div>
+        <div class="col-3">
+            <label class="form-label" for="contractText">Contract Text</label>
+            <InputTextArea id="contractText" class="form-control" @bind-Value="newContract.Text" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-3">
+            <label class="form-label" for="companyName">Company Name</label>
+            <InputText id="companyName" class="form-control" @bind-Value="newContract.CompanyName" />
+        </div>
+        <div class="col-3">
+            <label class="form-label" for="pharmacyName">Pharmacy Name</label>
+            <InputText id="pharmacyName" class="form-control" @bind-Value="newContract.PharmacyName" />
+        </div>
+        <div class="col-3">
+            <label class="form-label" for="supervisor">Supervisor SSN</label>
+            <InputText id="supervisor" class="form-control" @bind-Value="newContract.SupervisorSSN" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block col-12 my-2">
+        <i class="bi bi-floppy-fill"></i> Save
+    </button>
+</EditForm>
+
+<h3>Contract List</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">Contract ID</th>
+        <th scope="col">Start Date</th>
+        <th scope="col">End Date</th>
+        <th scope="col">Contract Text</th>
+        <th scope="col">Company Name</th>
+        <th scope="col">Pharmacy Name</th>
+        <th scope="col">Supervisor SSN</th>
+        <th scope="col">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var contract in contracts)
+    {
+        <tr>
+            <td>@contract.ContractID</td>
+            <td>@contract.StartDate.ToShortDateString()</td>
+            <td>@contract.EndDate.ToShortDateString()</td>
+            <td>@contract.Text</td>
+            <td>@contract.CompanyName</td>
+            <td>@contract.PharmacyName</td>
+            <td>@contract.SupervisorSSN</td>
+            <td>
+                <button class="btn btn-warning" @onclick="() => EditContract(contract)">
+                    <i class="bi bi-pencil-square"></i> Edit
+                </button>
+                <button class="btn btn-danger" @onclick="() => DeleteContract(contract.ContractID)">
+                    <i class="bi bi-trash3-fill"></i> Delete
+                </button>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private List<Contract> contracts = new();
+    private Contract newContract = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadContracts();
+    }
+
+    private async Task LoadContracts()
+    {
+        contracts = await contractService.GetContracts();
+    }
+
+    private async Task AddOrUpdateContract()
+    {
+        if (newContract.ContractID == 0)
+        {
+            await contractService.PostContract(newContract);
+        }
+        else
+        {
+            await contractService.UpdateContract(newContract);
+        }
+
+        newContract = new Contract();
+        await LoadContracts();
+        StateHasChanged();
+    }
+
+    private void EditContract(Contract contract)
+    {
+        newContract = contract;
+    }
+
+    private async Task DeleteContract(int contractId)
+    {
+        await contractService.DeleteContract(contractId);
+        await LoadContracts();
+        StateHasChanged();
+    }
+}
