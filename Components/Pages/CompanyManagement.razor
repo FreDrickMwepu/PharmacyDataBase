@@ -10,23 +10,30 @@
 <EditForm Model="@newCompany" OnValidSubmit="@AddCompany">
     <DataAnnotationsValidator />
     <ValidationSummary />
-    <div class="row">
+    <div class="row container-fluid" style="background-color: #f0f8ff; padding: 15px;">
+        <h1>Register Company</h1>
         <div class="col-6">
-            <label class="form-label">Company Name</label>
-            <InputText class="form-control" @bind-Value="newCompany.Name" />
+            <div>
+                <label class="form-label">Company Name</label>
+                <InputText class="form-control" @bind-Value="newCompany.Name"/>
+            </div>
+            <div>
+                <label class="form-label">Phone Number</label>
+                <InputText class="form-control" @bind-Value="newCompany.PhoneNumber"/>
+            </div>
+            <div class="d-grid gap-2 col-12 mx-auto py-4">
+                <button type="submit" class="btn btn-primary">Add Company</button>
+            </div>
         </div>
         <div class="col-6">
-            <label class="form-label">Phone Number</label>
-            <InputText class="form-control" @bind-Value="newCompany.PhoneNumber" />
+            <img src="Resources/StockCake-Community Health Event_1718402021.jpg" class="d-block w-100" alt="...">
         </div>
     </div>
-    <div class="d-grid gap-2 col-6 mx-auto py-4">
-        <button type="submit" class="btn btn-primary">Add Company</button>
-    </div>
-    
 </EditForm>
 
-<div>
+<h1>Registered Pharmaceutical Companies</h1>
+<div style="padding: 20px;">
+    
     <table class="table table-striped">
         <thead>
         <tr>
@@ -42,11 +49,11 @@
                 <td>@company.Name</td>
                 <td>@company.PhoneNumber</td>
                 <td>
-                    <button class="btn btn-warning" >
+                    <button class="btn btn-warning">
                         <i class="bi bi-pencil-square"></i> Edit
                     </button>
-                    <button class="btn btn-danger" >
-                        <i class="bi bi-pencil-square"></i> Delete
+                    <button class="btn btn-danger">
+                        <i class="bi bi-trash3-fill"></i> Delete
                     </button>
                 </td>
             </tr>
@@ -54,6 +61,7 @@
         </tbody>
     </table>
 </div>
+
 
 @code {
     public List<PharmaceuticalCompany> companies = new List<PharmaceuticalCompany>();

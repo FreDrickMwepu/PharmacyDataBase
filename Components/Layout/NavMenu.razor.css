@@ -38,12 +38,12 @@
 .icon-text {
     display: flex;
     align-items: center;
-    font-size: 1.5rem; /* Adjust text size */
+    font-size: 1.5rem;
 }
 
 .icon-text .bi {
-    margin-right: 0.5rem; /* Adjust spacing as needed */
-    font-size: 1.5rem; /* Adjust icon size */
+    margin-right: 0.5rem; 
+    font-size: 1.5rem; 
 }
 
 .bi-house-door-fill-nav-menu,
