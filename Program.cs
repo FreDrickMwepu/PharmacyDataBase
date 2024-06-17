@@ -1,3 +1,8 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PharmacyDataBase.Data;
@@ -12,10 +17,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
-    .AddCookie(IdentityConstants.ApplicationScheme); // Adjust based on your authentication scheme
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDataBaseContext>();
+
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+
 builder.Services.AddAuthorization();
-builder.Services.AddCascadingAuthenticationState();
 
 builder.Services.AddScoped<CompanyServices>();
 builder.Services.AddScoped<ContractServices>();
@@ -30,10 +38,8 @@ builder.Services.AddBlazorBootstrap();
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddSyncfusionBlazor();
-// Register HttpClient
 builder.Services.AddHttpClient();
 
-// Add default identity with EF Core
 builder.Services.AddDbContext<ApplicationDataBaseContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -41,20 +47,12 @@ builder.Services.AddDbContext<ApplicationDataBaseContext>(options =>
     )
 );
 
-builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDataBaseContext>();
-
-// Register custom AuthenticationStateProvider
-builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider<ApplicationUser>>();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 

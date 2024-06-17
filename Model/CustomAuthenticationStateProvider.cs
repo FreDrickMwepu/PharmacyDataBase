@@ -1,39 +1,46 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System;
-using System.Threading;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components.Server;
+using PharmacyDataBase.Data;
 
-public class CustomAuthenticationStateProvider<TUser> : RevalidatingServerAuthenticationStateProvider where TUser : class
+public class CustomAuthenticationStateProvider : AuthenticationStateProvider
 {
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly IdentityOptions _options;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
 
-    public CustomAuthenticationStateProvider(ILoggerFactory loggerFactory, IServiceScopeFactory scopeFactory, IOptions<IdentityOptions> optionsAccessor)
-        : base(loggerFactory)
+    public CustomAuthenticationStateProvider(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
     {
-        _scopeFactory = scopeFactory;
-        _options = optionsAccessor.Value;
+        _userManager = userManager;
+        _signInManager = signInManager;
     }
 
-    protected override TimeSpan RevalidationInterval => TimeSpan.FromMinutes(30);
-
-    protected override async Task<bool> ValidateAuthenticationStateAsync(AuthenticationState authenticationState, CancellationToken cancellationToken)
+    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var scope = _scopeFactory.CreateScope();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TUser>>();
+        var user = _signInManager.Context.User;
 
-        var user = await userManager.GetUserAsync(authenticationState.User);
-        if (user == null)
+        if (user.Identity?.IsAuthenticated ?? false)
         {
-            return false;
+            var applicationUser = await _userManager.GetUserAsync(user);
+            var claimsPrincipal = await CreateClaimsPrincipal(applicationUser);
+            return new AuthenticationState(claimsPrincipal);
         }
+        
+        return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+    }
 
-        // Other custom validations can be added here
+    private async Task<ClaimsPrincipal> CreateClaimsPrincipal(ApplicationUser user)
+    {
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.UserName),
+            new Claim(ClaimTypes.Email, user.Email)
+        };
 
-        return true;
+        var roles = await _userManager.GetRolesAsync(user);
+        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+        var identity = new ClaimsIdentity(claims, "CustomAuthentication");
+        return new ClaimsPrincipal(identity);
     }
 }
